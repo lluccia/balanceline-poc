@@ -2,20 +2,20 @@ package joiner;
 
 import java.util.Iterator;
 
-public class Joiner {
+public class Joiner<L extends Joinable, R extends Joinable> {
 
-    private Iterator<String> leftIterator;
-    private Iterator<String> rightIterator;
+    private Iterator<L> leftIterator;
+    private Iterator<R> rightIterator;
 
-    private String leftItem;
-    private String rightItem;
+    private L leftItem;
+    private R rightItem;
     
-    public Joiner(Iterator<String> leftIterator, Iterator<String> rightIterator) {
+    public Joiner(Iterator<L> leftIterator, Iterator<R> rightIterator) {
         this.leftIterator = leftIterator;
         this.rightIterator = rightIterator;
     }
 
-    public Joined nextJoined() {
+    public Joined<L, R> nextJoined() {
         if (!hasNext())
             return null;
         
@@ -28,17 +28,17 @@ public class Joiner {
         return buildJoined();        
     }
 
-    private Joined buildJoined() {
-        Joined joined = new Joined();
+    private Joined<L, R> buildJoined() {
+        Joined<L, R> joined = new Joined<>();
         
         if (rightItem == null) {
             consumeLeft(joined);
         } else if (leftItem == null) {
             consumeRight(joined);
-        } else if (leftItem.equals(rightItem)) {
+        } else if (leftItem.getJoinKey().equals(rightItem.getJoinKey())) {
             consumeLeft(joined);
             consumeRight(joined);
-        } else if (leftItem.compareTo(rightItem) > 0) {
+        } else if (leftItem.getJoinKey().compareTo(rightItem.getJoinKey()) > 0) {
             consumeRight(joined);
         } else {
             consumeLeft(joined);
@@ -47,12 +47,12 @@ public class Joiner {
         return joined;
     }
 
-    private void consumeLeft(Joined joined) {
+    private void consumeLeft(Joined<L, R> joined) {
         joined.leftItem = leftItem;
         leftItem = null;
     }
     
-    private void consumeRight(Joined joined) {
+    private void consumeRight(Joined<L, R> joined) {
         joined.rightItem = rightItem;
         rightItem = null;
     }

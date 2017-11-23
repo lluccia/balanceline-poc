@@ -1,6 +1,6 @@
 package joiner;
 
-public class Joined {
-    String leftItem;
-    String rightItem;
+public class Joined<L, R> {
+    L leftItem;
+    R rightItem;
 }

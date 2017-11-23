@@ -9,8 +9,9 @@ import org.junit.Test;
 
 public class JoinerTest {
 
-    private ArrayList<String> leftIterable;
-    private ArrayList<String> rightIterable;
+    private ArrayList<JoinableString> leftIterable;
+    private ArrayList<JoinableString> rightIterable;
+    private Joiner<JoinableString, JoinableString> joiner;
 
     @Before
     public void setup() {
@@ -18,9 +19,13 @@ public class JoinerTest {
         rightIterable = new ArrayList<>();
     }
 
+    private void createJoiner() {
+        joiner = new Joiner<>(leftIterable.iterator(), rightIterable.iterator());
+    }
+    
     @Test
     public void noItems() {
-        Joiner joiner = new Joiner(leftIterable.iterator(), rightIterable.iterator());
+        createJoiner();
         
         assertThat(joiner.hasNext()).isFalse();
         assertThat(joiner.nextJoined()).isNull();
@@ -28,10 +33,10 @@ public class JoinerTest {
 
     @Test
     public void leftItemsOnly() {
-        leftIterable.add("sbrubbles");
-        leftIterable.add("sbrubbles2");
+        leftIterable.add(JoinableString.of("sbrubbles"));
+        leftIterable.add(JoinableString.of("sbrubbles2"));
         
-        Joiner joiner = new Joiner(leftIterable.iterator(), rightIterable.iterator());
+        createJoiner();
         
         assertThat(joiner.hasNext()).isTrue();
         
@@ -43,10 +48,10 @@ public class JoinerTest {
     
     @Test
     public void rightItemsOnly() {
-        rightIterable.add("sbrubbles");
-        rightIterable.add("sbrubbles2");
+        rightIterable.add(JoinableString.of("sbrubbles"));
+        rightIterable.add(JoinableString.of("sbrubbles2"));
         
-        Joiner joiner = new Joiner(leftIterable.iterator(), rightIterable.iterator());
+        createJoiner();
         
         assertThat(joiner.hasNext()).isTrue();
         
@@ -58,11 +63,11 @@ public class JoinerTest {
     
     @Test
     public void joinedItems() {
-        leftIterable.add("sbrubbles");
+        leftIterable.add(JoinableString.of("sbrubbles"));
         
-        rightIterable.add("sbrubbles");
+        rightIterable.add(JoinableString.of("sbrubbles"));
         
-        Joiner joiner = new Joiner(leftIterable.iterator(), rightIterable.iterator());
+        createJoiner();
         
         assertThat(joiner.hasNext()).isTrue();
 
@@ -73,11 +78,11 @@ public class JoinerTest {
     
     @Test
     public void distinctItems() {
-        leftIterable.add("aaa");
+        leftIterable.add(JoinableString.of("aaa"));
         
-        rightIterable.add("bbb");
+        rightIterable.add(JoinableString.of("bbb"));
         
-        Joiner joiner = new Joiner(leftIterable.iterator(), rightIterable.iterator());
+        createJoiner();
         
         assertJoined(joiner.nextJoined(), "aaa", null);
         assertJoined(joiner.nextJoined(), null, "bbb");
@@ -87,15 +92,15 @@ public class JoinerTest {
     
     @Test
     public void mixedItems() {
-        leftIterable.add("aaa");
-        leftIterable.add("bbb");
-        leftIterable.add("ddd");
+        leftIterable.add(JoinableString.of("aaa"));
+        leftIterable.add(JoinableString.of("bbb"));
+        leftIterable.add(JoinableString.of("ddd"));
         
-        rightIterable.add("aaa");
-        rightIterable.add("ccc");
-        rightIterable.add("ddd");
+        rightIterable.add(JoinableString.of("aaa"));
+        rightIterable.add(JoinableString.of("ccc"));
+        rightIterable.add(JoinableString.of("ddd"));
         
-        Joiner joiner = new Joiner(leftIterable.iterator(), rightIterable.iterator());
+        createJoiner();
         
         assertJoined(joiner.nextJoined(), "aaa", "aaa");
         assertJoined(joiner.nextJoined(), "bbb", null);
@@ -105,9 +110,17 @@ public class JoinerTest {
         assertThat(joiner.hasNext()).isFalse();
     }
     
-    private void assertJoined(Joined joined, String expectedLeft, String expectedRight) {
-        assertThat(joined.leftItem).isEqualTo(expectedLeft);
-        assertThat(joined.rightItem).isEqualTo(expectedRight);
+    private void assertJoined(Joined<JoinableString, JoinableString> joined,
+                                String expectedLeft, String expectedRight) {
+        if (expectedLeft == null)
+            assertThat(joined.leftItem).isNull();
+        else
+            assertThat(joined.leftItem.value).isEqualTo(expectedLeft);
+        
+        if (expectedRight == null)
+            assertThat(joined.rightItem).isNull();
+        else
+            assertThat(joined.rightItem.value).isEqualTo(expectedRight);
     }
     
 }
